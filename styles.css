@@ -1,0 +1,155 @@
+/* Garden grid styles */
+.garden-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 80px);
+    grid-gap: 2px;
+    margin: 20px;
+}
+
+.garden-cell {
+    width: 80px;
+    height: 80px;
+    background-color: #251102;
+    border: 1px solid #553111;
+    position: relative;
+    cursor: pointer;
+}
+
+/* Moisture indicator */
+.moisture-indicator {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background-color: rgba(0, 120, 255, 0.7); /* Blue background */
+    color: white;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* Plant display */
+.plant-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+}
+
+/* Tool buttons */
+.tools {
+    margin: 20px;
+}
+
+.tool-btn {
+    padding: 8px 16px;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.tool-btn.active {
+    background-color: #4CAF50;
+    color: white;
+}
+
+/* Game info display */
+.game-info {
+    margin: 20px;
+}
+/* Seed selection container */
+#seed-selection-container {
+    margin-top: 10px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#seed-selection-container h3 {
+    margin: 0 0 12px 0;
+    font-size: 16px;
+    color: #333;
+}
+
+/* Seed buttons container */
+#seed-selection-container > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* Individual seed buttons */
+.seed-button {
+    width: 70px;
+    height: 90px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    background-color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.seed-button:hover {
+    border-color: #AAD8A9;
+    box-shadow: 0 0 5px rgba(170, 216, 169, 0.5);
+    transform: translateY(-2px);
+}
+
+.seed-button.active {
+    background-color: #E8F5E9;
+    border-color: #66BB6A;
+    box-shadow: 0 0 5px rgba(102, 187, 106, 0.5);
+}
+
+.seed-button .icon {
+    font-size: 28px;
+    margin-bottom: 5px;
+}
+
+.seed-button .name {
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 3px;
+}
+
+.seed-button .season {
+    font-size: 10px;
+    color: #666;
+    text-align: center;
+}
+
+/* Different colors for each season */
+.seed-button[data-season="Spring"] .season {
+    color: #66BB6A;
+}
+
+.seed-button[data-season="Summer"] .season {
+    color: #FFA726;
+}
+
+.seed-button[data-season="Fall"] .season {
+    color: #EF6C00;
+}
+
+.seed-button[data-season="Winter"] .season {
+    color: #42A5F5;
+}
+
+/* Animation for seed selection */
+@keyframes seedPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.seed-button.active .icon {
+    animation: seedPulse 1s infinite;
+}
