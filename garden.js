@@ -18,7 +18,8 @@ class Garden {
                     soilQuality: 50,
                     sunExposure: "full",
                     weedLevel: 0,
-                    isPlowed: false
+                    isPlowed: false,
+                    soilTemperature: 65 // Initialize with moderate soil temperature
                 });
             }
             grid.push(row);
@@ -30,6 +31,7 @@ class Garden {
     getCell(x, y) {
         return this.grid[y][x];
     }
+    
     waterGardenFromRain(rainfallAmount) {
         // Add moisture to all cells based on rainfall
         for (let y = 0; y < this.height; y++) {
@@ -45,6 +47,7 @@ class Garden {
             }
         }
     }
+    
     // Water the plot, filling to 100%
     waterPlot(x, y) {
         const cell = this.getCell(x, y);
@@ -65,19 +68,30 @@ class Garden {
         }
     }
     
-    // Harvest a mature plant
+    // Harvest a mature plant - now considers plant lifecycle
     harvestPlant(x, y) {
         const cell = this.getCell(x, y);
         if (cell.plant && cell.plant.isHarvestable()) {
-            console.log(`Harvested ${cell.plant.name} at (${x},${y})`);
-            cell.plant = null;
-            return true;
+            // Get harvest reward
+            const harvestReward = cell.plant.harvestReward;
+            
+            // Use plant's harvest method to determine if plant should be removed
+            const shouldRemove = cell.plant.harvest();
+            
+            if (shouldRemove) {
+                cell.plant = null;
+                console.log(`Plant removed after harvest at (${x},${y})`);
+            } else {
+                console.log(`Plant remains after harvest at (${x},${y})`);
+            }
+            
+            return harvestReward;
         } else if (cell.plant) {
             console.log(`Plant at (${x},${y}) is not ready for harvest`);
-            return false;
+            return 0;
         } else {
             console.log(`No plant to harvest at (${x},${y})`);
-            return false;
+            return 0;
         }
     }
     
@@ -94,9 +108,46 @@ class Garden {
         }
     }
     
+    // Update soil temperatures based on air temperature
+    updateSoilTemperatures(airTemperature) {
+        for (let y = 0; y < this.height; y++) {
+            for (let x = 0; x < this.width; x++) {
+                const cell = this.getCell(x, y);
+                
+                // Soil temperature changes more slowly than air temperature
+                // It's a weighted average of current soil temp and air temp
+                const soilTempChangeRate = 0.3; // 30% change toward air temp each day
+                cell.soilTemperature = cell.soilTemperature + 
+                    (airTemperature - cell.soilTemperature) * soilTempChangeRate;
+                
+                // Round to nearest degree
+                cell.soilTemperature = Math.round(cell.soilTemperature);
+            }
+        }
+    }
+    
+    // Check all plants for temperature-related deaths
+    checkPlantsForTemperatureEffects(airTemperature) {
+        for (let y = 0; y < this.height; y++) {
+            for (let x = 0; x < this.width; x++) {
+                const cell = this.getCell(x, y);
+                
+                if (cell.plant) {
+                    cell.plant.checkTemperatureSurvival(airTemperature);
+                }
+            }
+        }
+    }
+    
     // Update the garden for a new day
-    advanceDay(moistureReduction, environmentModifier, currentSeason, rainfallAmount) {
-        // First, apply rainfall if any
+    advanceDay(moistureReduction, environmentModifier, currentSeason, rainfallAmount, airTemperature) {
+        // First, update soil temperatures
+        this.updateSoilTemperatures(airTemperature);
+        
+        // Check plants for temperature effects (frost damage, etc.)
+        this.checkPlantsForTemperatureEffects(airTemperature);
+        
+        // Apply rainfall if any
         if (rainfallAmount > 0) {
             this.waterGardenFromRain(rainfallAmount);
         }
@@ -108,7 +159,13 @@ class Garden {
                 
                 // Update plant growth if present and if there's moisture
                 if (cell.plant && cell.soilMoisture > 0) {
-                    cell.plant.grow(cell.soilMoisture, environmentModifier, currentSeason);
+                    // Pass soil temperature to the growth function
+                    cell.plant.grow(
+                        cell.soilMoisture, 
+                        environmentModifier, 
+                        currentSeason,
+                        cell.soilTemperature
+                    );
                 }
                 
                 // Reduce moisture after growth has been calculated
@@ -116,7 +173,11 @@ class Garden {
                 
                 // Log the cell's state after updates
                 if (cell.plant) {
-                    console.log(`Cell (${x},${y}): Plant=${cell.plant.type}, Stage=${cell.plant.growthStage}, Progress=${cell.plant.growthProgress.toFixed(1)}%, Moisture=${cell.soilMoisture}%`);
+                    const plantState = cell.plant.isDormant ? "DORMANT" : 
+                                       cell.plant.isDead ? "DEAD" : 
+                                       cell.plant.growthStage;
+                    
+                    console.log(`Cell (${x},${y}): Plant=${cell.plant.type}, Stage=${plantState}, Progress=${cell.plant.growthProgress.toFixed(1)}%, Moisture=${cell.soilMoisture}%, Soil Temp=${cell.soilTemperature}°F`);
                 }
             }
         }
